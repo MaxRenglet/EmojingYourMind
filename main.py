@@ -33,13 +33,13 @@ for x in range(0,len(keywords)):
  else:
   keyword = keyword+keywords[x]+" OR "+keywords[x].upper()
   
-# Function to find a tweet with our keywords
+# Function to find a tweet with our keywords, change the lang to a specific language (fr,en,sp,...)
 def find():
    listoftweet = []
    for tweet in tweepy.Cursor(api.search,
                              q=keyword,
                              result_type="recent",
-                             lang="fr").items(50):
+                             lang="en").items(50):
 
       listoftweet.append(tweet.text)
       screen_name = tweet.author.screen_name.encode('utf8')
