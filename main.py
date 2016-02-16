@@ -6,14 +6,17 @@ import time
 import random
 
 #List of words to replace
-keywords = ['migrant','migrants','réfugié','refugie','réfugiés','refugies','réfugie','refugié','réfugies','refugiés']
-emoji = ['']
+keywords = ['animal','dog','cat']
+
+#list of emojis that you want to put
+emojis = [u'\U0001F427',u'\U0001F424']
+
 
 # Consumer keys and access tokens, used for OAuth
-consumer_key = 'WUuDXUQswVWWwRqjYYrikfu62'
-consumer_secret = 'uFJuiHxopWCtTPkF65Uko7sv7krabx9K7KbqMmcytQ7A0TIvoh'
-access_token = '837361062-Ua30HK9ajAnR07XOEG6v4f5aIG9dq9wIEzWwHKTa'
-access_token_secret = 'x8bG3jDZx96JqGSDguFAquZLx2Nv6uTpTEhLQqkJfXJWV'
+consumer_key = ''
+consumer_secret = ''
+access_token = ''
+access_token_secret = ''
  
 # OAuth process, using the keys and tokens
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -22,32 +25,38 @@ auth.set_access_token(access_token, access_token_secret)
 # Creation of the actual interface, using authentication
 api = tweepy.API(auth)
  
-# Sample method, used to update a status
-# api.update_status('Hello Python Central! #twitterisart')
-
-
+# Put the keyword in a string to send it to Twitter
+keyword = ''
+for x in range(0,len(keywords)):
+ if(x != len(keywords)-1):
+  keyword = keyword+keywords[x]+" OR "+keywords[x].upper()+" OR "
+ else:
+  keyword = keyword+keywords[x]+" OR "+keywords[x].upper()
+  
+# Function to find a tweet with our keywords
 def find():
    listoftweet = []
    for tweet in tweepy.Cursor(api.search,
-                             q="migrant OR migrants OR MIGRANT OR MIGRANTS OR refugies OR refugie 0R REFUGIES OR REFUGIE",
+                             q=keyword,
                              result_type="recent",
-                             lang="fr").items(5):
+                             lang="fr").items(50):
 
       listoftweet.append(tweet.text)
       screen_name = tweet.author.screen_name.encode('utf8')
 
-   print len(listoftweet)
+   # Here I put all the tweet found in a list and then choose one randomly
    text = random.choice(listoftweet)
    newlist = []
    words = text.split()
-
+   
+   # This part is about the finding of our keywords and to repalce them with an random emoji from our list
    for word in words:
      if any(keyword in word.lower() for keyword in keywords):
-       newlist.append(u'\U0001f466\U0001f3ff')
+       newlist.append(random.choice(emojis))
      else:
        newlist.append(word)
-   #newlist = words[4:len(words)]
-
+  
+  # here is some line about the purging our final tweet
    if newlist[0] == 'RT':
      newlist.pop(0)
      newlist.pop(0)
@@ -56,15 +65,16 @@ def find():
    string = re.sub('htt(\S+)\s?','' , string)
    string = re.sub(' +',' ',string)
    string = string[:-1] if string.endswith(' ') else string
-   string_final = string+" @"+screen_name
+   string_final = string+" (via @"+screen_name+")"
    return(string_final)
 
+# function to post the final tweet
 def post(text):
  api.update_status(text)
  print 'POSTING'
 
  
- 
+# Security part ! To avoid the character and rate of query limitation
 while True:
     try:
         text = find()
@@ -76,9 +86,8 @@ while True:
              post(text)
 
     except tweepy.TweepError:
-        time.sleep(60*2)
+     # I put 15min to avoid the rate of query limitation
+        time.sleep(60*15)
         continue
     except StopIteration:
         break 
-
-  
